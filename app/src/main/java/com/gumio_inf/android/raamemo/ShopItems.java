@@ -10,7 +10,7 @@ import com.activeandroid.annotation.Table;
 @Table(name = "ShopTable")
 public class ShopItems extends Model {
 
-    //店のID！
+    //店のID
     @Column(name = "shopID")
     public Long shopId;
     //店の名前
