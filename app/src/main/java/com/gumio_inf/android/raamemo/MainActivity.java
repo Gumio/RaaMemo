@@ -28,6 +28,8 @@ public class MainActivity extends AppCompatActivity {
         // データの作成
         objects = new ArrayList<>();
 
+        // 全て取リだし
+
         item1 = new RaamenData();
         item1.setImagaData(image);
         item1.setTextData("The first");

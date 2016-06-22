@@ -14,7 +14,7 @@ public class ShopItems extends Model {
 
     //店のID
     @Column(name = "shopID")
-    public Long shopId = 0L;
+    public Long shopId;
     //店の名前
     @Column(name = "shopName")
     public String shopName;
@@ -27,7 +27,6 @@ public class ShopItems extends Model {
 
     public ShopItems() {
         super();
-        shopId++;
     }
 
     public Long getShopId() {

@@ -18,6 +18,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -26,6 +27,9 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
 
     double latitude;
     double longitue;
+
+    long shopId = 0;
+    long raamenId = 0;
 
     EditText shop;
     EditText raamen;
@@ -88,16 +92,19 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
         RaamenItems raamenItems = new RaamenItems();
 
         shopItems.shopName = shop.getText().toString();
-        raamenItems.raamenName = raamen.getText().toString();
-        raamenItems.createdDt = new Date();
-        raamenItems.taste = taste.getText().toString();
-        raamenItems.raamenMemo = memo.getText().toString();
         shopItems.shopLongitue = longitue;
         shopItems.shopLatitude = latitude;
+        shopItems.shopId = shopId++;
+        raamenItems.raamenId = raamenId++;
+        raamenItems.raamenName = raamen.getText().toString();
+        Date date = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.JAPANESE);
+        raamenItems.createdDt = sdf.format(date);
+        raamenItems.taste = taste.getText().toString();
+        raamenItems.raamenMemo = memo.getText().toString();
 
         raamenItems.save();
         shopItems.save();
-
 
         Toast.makeText(getApplicationContext(), "保存しました", Toast.LENGTH_SHORT).show();
     }

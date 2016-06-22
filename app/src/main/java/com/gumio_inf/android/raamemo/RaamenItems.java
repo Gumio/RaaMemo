@@ -4,8 +4,6 @@ import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
 
-import java.util.Date;
-
 /**
  * Created by gumio_inf on 16/06/19.
  */
@@ -13,9 +11,9 @@ import java.util.Date;
 @Table(name = "RaamenTable")
 public class RaamenItems extends Model {
     @Column(name = "raamenId")
-    public Long raamenId = 0L;
+    public Long raamenId;
     @Column(name = "createData")
-    public Date createdDt;
+    public String createdDt;
     @Column(name = "raamenName")
     public String raamenName;
     @Column(name = "taste")
@@ -29,6 +27,5 @@ public class RaamenItems extends Model {
 
     public RaamenItems() {
         super();
-        raamenId++;
     }
 }
