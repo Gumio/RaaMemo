@@ -9,10 +9,11 @@ import java.util.Date;
 /**
  * Created by gumio_inf on 16/06/19.
  */
+//必要なDBを作成
 @Table(name = "RaamenTable")
 public class RaamenItems extends Model {
     @Column(name = "raamenId")
-    public Long raamenId;
+    public Long raamenId = 0L;
     @Column(name = "createData")
     public Date createdDt;
     @Column(name = "raamenName")
@@ -24,9 +25,10 @@ public class RaamenItems extends Model {
     @Column(name = "raamenMemo")
     public String raamenMemo;
     @Column(name = "shopID")
-    public Long shopId = new ShopItems().shopId;
+    public Long shopId = new ShopItems().getShopId();
 
     public RaamenItems() {
         super();
+        raamenId++;
     }
 }

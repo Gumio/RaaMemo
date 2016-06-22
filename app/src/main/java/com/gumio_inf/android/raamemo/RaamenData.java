@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 /**
  * Created by gumio_inf on 16/06/21.
  */
+//テスト用にviewに入れるデータのsetter/getter
 public class RaamenData {
     private Bitmap imageData;
     private String textData;

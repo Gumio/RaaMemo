@@ -7,12 +7,14 @@ import com.activeandroid.annotation.Table;
 /**
  * Created by gumio_inf on 16/06/19.
  */
+
+//必要なDBを作成
 @Table(name = "ShopTable")
 public class ShopItems extends Model {
 
     //店のID
     @Column(name = "shopID")
-    public Long shopId;
+    public Long shopId = 0L;
     //店の名前
     @Column(name = "shopName")
     public String shopName;
@@ -25,6 +27,7 @@ public class ShopItems extends Model {
 
     public ShopItems() {
         super();
+        shopId++;
     }
 
     public Long getShopId() {
