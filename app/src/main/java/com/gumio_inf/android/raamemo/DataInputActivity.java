@@ -17,6 +17,9 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.activeandroid.query.From;
+import com.activeandroid.query.Select;
+
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -25,16 +28,13 @@ import java.util.Locale;
 
 public class DataInputActivity extends AppCompatActivity implements LocationListener {
 
-    double latitude;
-    double longitue;
-
-    long shopId = 0;
-    long raamenId = 0;
+    double latitude = 34.777951;
+    double longitue = 135.39121;
 
     EditText shop;
     EditText raamen;
     EditText taste;
-    EditText locate;
+    EditText location;
     EditText memo;
 
     LocationManager mLocationManager;
@@ -78,7 +78,7 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
 
         shop = (EditText) findViewById(R.id.editShop);
         raamen = (EditText) findViewById(R.id.editRaamenName);
-        locate = (EditText) findViewById(R.id.editLocate);
+        location = (EditText) findViewById(R.id.editLocate);
         taste = (EditText) findViewById(R.id.editTaste);
         memo = (EditText) findViewById(R.id.editMemo);
 
@@ -91,18 +91,29 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
         ShopItems shopItems = new ShopItems();
         RaamenItems raamenItems = new RaamenItems();
 
+        From query = new Select().from(ShopItems.class).innerJoin(RaamenItems.class).on("shopItem.shopId = RaamenItem.shopId");
+
+        //店の情報
         shopItems.shopName = shop.getText().toString();
         shopItems.shopLongitue = longitue;
         shopItems.shopLatitude = latitude;
-        shopItems.shopId = shopId++;
-        raamenItems.raamenId = raamenId++;
-        raamenItems.raamenName = raamen.getText().toString();
+        Log.d("shopName", shopItems.shopName);
+        Log.d("shopLongitue", String.valueOf(shopItems.shopLongitue));
+        Log.d("shopLatitude", String.valueOf(shopItems.shopLatitude));
+
+        //ラーメンの情報
         Date date = new Date();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.JAPANESE);
+        raamenItems.raamenName = raamen.getText().toString();
         raamenItems.createdDt = sdf.format(date);
         raamenItems.taste = taste.getText().toString();
         raamenItems.raamenMemo = memo.getText().toString();
+        Log.d("raamenName", raamenItems.raamenName);
+        Log.d("createDt", raamenItems.createdDt);
+        Log.d("taste", raamenItems.taste);
+        Log.d("raamenMemo", raamenItems.raamenMemo);
 
+        //保存
         raamenItems.save();
         shopItems.save();
 
@@ -110,16 +121,15 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
     }
 
     public void getLocateShop(View v) {
-
-        locate.setText(getLocate().toString());
+        location.setText(getLocate());
     }
 
     @Override
     public void onLocationChanged(Location location) {
-        // 緯度の表示
+        // 緯度の取得
         latitude = location.getLatitude();
 
-        // 経度の表示
+        // 経度の取得
         longitue = location.getLongitude();
 
         Log.d("latitude", String.valueOf(latitude));
@@ -145,18 +155,18 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
     }
 
     protected String getLocate() {
-        String ret = "";
+        String locate = "";
         try {
 
             Geocoder gcd = new Geocoder(this, Locale.JAPAN);
             List<Address> addresses = gcd.getFromLocation(latitude, longitue, 1);
             if (!addresses.isEmpty()) {
-                ret = addresses.get(0).getAddressLine(1);
+                locate = addresses.get(0).getAddressLine(1);
             }
 
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return ret;
+        return locate;
     }
 }

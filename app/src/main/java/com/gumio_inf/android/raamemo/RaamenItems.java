@@ -12,6 +12,8 @@ import com.activeandroid.annotation.Table;
 public class RaamenItems extends Model {
     @Column(name = "raamenId")
     public Long raamenId;
+    @Column(name = "shopId")
+    public Long shopId;
     @Column(name = "createData")
     public String createdDt;
     @Column(name = "raamenName")
@@ -22,10 +24,37 @@ public class RaamenItems extends Model {
     public String picture;
     @Column(name = "raamenMemo")
     public String raamenMemo;
-    @Column(name = "shopID")
-    public Long shopId = new ShopItems().getShopId();
+
+    //shopidで関連付け
+    //public List<ShopItems> shopItemses() {
+    //    return getMany(ShopItems.class, "shopID");
+    //};
 
     public RaamenItems() {
         super();
+    }
+
+    public Long getRaamenId() {
+        return raamenId;
+    }
+
+    public String getCreatedDt() {
+        return createdDt;
+    }
+
+    public String getRaamenName() {
+        return raamenName;
+    }
+
+    public String getTaste() {
+        return taste;
+    }
+
+    public String getPicture() {
+        return picture;
+    }
+
+    public String getRaamenMemo() {
+        return raamenMemo;
     }
 }

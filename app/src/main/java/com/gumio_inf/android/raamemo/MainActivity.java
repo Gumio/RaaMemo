@@ -14,6 +14,11 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     Bitmap image;//画像用
+
+    CardAdapter customAdapter;
+    ArrayList<RaamenItems> raamenItemses;
+    ArrayList<ShopItems> shopItemses;
+
     List<RaamenData> objects;//listviewに表示するようのlist
     RaamenData item1, item2, item3, item4, item5, item6;//データ
     ListView listView;
@@ -77,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
         /*ここでlistviewに表示するためにArrayAdapterを継承した
           CardAdapterに作成したlistを引数に渡す
           */
-        CardAdapter customAdapter = new CardAdapter(this, 0, objects);
+        customAdapter = new CardAdapter(this, 0, objects);
 
 
         listView = (ListView)findViewById(R.id.cardList);

@@ -13,7 +13,7 @@ import com.activeandroid.annotation.Table;
 public class ShopItems extends Model {
 
     //店のID
-    @Column(name = "shopID")
+    @Column(name = "shopId")
     public Long shopId;
     //店の名前
     @Column(name = "shopName")
@@ -24,6 +24,8 @@ public class ShopItems extends Model {
     //店の経度
     @Column(name = "shopLongitue")
     public Double shopLongitue;
+    @Column(name = "shopLocate")
+    public String shopLocate;
 
     public ShopItems() {
         super();
@@ -32,4 +34,17 @@ public class ShopItems extends Model {
     public Long getShopId() {
         return shopId;
     }
+
+    public String getShopName() {
+        return shopName;
+    }
+
+    public Double getShopLatitude() {
+        return shopLatitude;
+    }
+
+    public Double getShopLongitue() {
+        return shopLongitue;
+    }
+
 }
