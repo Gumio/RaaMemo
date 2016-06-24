@@ -17,9 +17,6 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.activeandroid.query.From;
-import com.activeandroid.query.Select;
-
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -28,13 +25,13 @@ import java.util.Locale;
 
 public class DataInputActivity extends AppCompatActivity implements LocationListener {
 
-    double latitude = 34.777951;
-    double longitue = 135.39121;
+    double latitude;
+    double longitue;
 
     EditText shop;
     EditText raamen;
     EditText taste;
-    EditText location;
+    EditText locate;
     EditText memo;
 
     LocationManager mLocationManager;
@@ -45,6 +42,12 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_data_input);
+        shop = (EditText) findViewById(R.id.editShop);
+        raamen = (EditText) findViewById(R.id.editRaamenName);
+        locate = (EditText) findViewById(R.id.editLocate);
+        taste = (EditText) findViewById(R.id.editTaste);
+        memo = (EditText) findViewById(R.id.editMemo);
+
 
         // LocationManagerを取得
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -73,15 +76,6 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
             return;
         }
         mLocationManager.requestLocationUpdates(provider, 0, 0, this);
-
-
-
-        shop = (EditText) findViewById(R.id.editShop);
-        raamen = (EditText) findViewById(R.id.editRaamenName);
-        location = (EditText) findViewById(R.id.editLocate);
-        taste = (EditText) findViewById(R.id.editTaste);
-        memo = (EditText) findViewById(R.id.editMemo);
-
     }
 
     @Override
@@ -90,8 +84,6 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
 
         ShopItems shopItems = new ShopItems();
         RaamenItems raamenItems = new RaamenItems();
-
-        From query = new Select().from(ShopItems.class).innerJoin(RaamenItems.class).on("shopItem.shopId = RaamenItem.shopId");
 
         //店の情報
         shopItems.shopName = shop.getText().toString();
@@ -121,7 +113,7 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
     }
 
     public void getLocateShop(View v) {
-        location.setText(getLocate());
+        locate.setText(getLocate());
     }
 
     @Override
@@ -155,18 +147,26 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
     }
 
     protected String getLocate() {
-        String locate = "";
+        String ret = "";
         try {
 
             Geocoder gcd = new Geocoder(this, Locale.JAPAN);
             List<Address> addresses = gcd.getFromLocation(latitude, longitue, 1);
             if (!addresses.isEmpty()) {
-                locate = addresses.get(0).getAddressLine(1);
+                ret = addresses.get(0).getAddressLine(1);
             }
 
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return locate;
+        return ret;
+    }
+
+    public void onCameraUp(View v) {
+
+    }
+
+    public void onPhotoUp(View v) {
+
     }
 }

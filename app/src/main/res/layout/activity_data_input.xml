@@ -88,10 +88,20 @@
             <ImageButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:id="@+id/photoButton"
+                android:src="@drawable/photo"
+                android:background="#00000000"
+                android:layout_marginRight="20dp"
+                android:onClick="onPhotoUp" />
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:id="@+id/pictureButton"
                 android:layout_gravity="center_vertical|bottom|right"
                 android:src="@drawable/camera_icon"
-                android:background="#00000000" />
+                android:background="#00000000"
+                android:onClick="onCameraUp" />
         </LinearLayout>
 
     </LinearLayout>

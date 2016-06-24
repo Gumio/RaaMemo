@@ -24,8 +24,6 @@ public class ShopItems extends Model {
     //店の経度
     @Column(name = "shopLongitue")
     public Double shopLongitue;
-    @Column(name = "shopLocate")
-    public String shopLocate;
 
     public ShopItems() {
         super();
