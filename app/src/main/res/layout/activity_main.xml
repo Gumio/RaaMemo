@@ -6,12 +6,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="com.gumio_inf.android.raamemo.MainActivity">
 
+
     <!-- ListViewの上に別のcardviewを乗せることで実現 -->
     <ListView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/cardList"
-        android:layout_alignParentTop="false" />
+        android:divider="@null"
+        android:layout_alignParentTop="true"
+        android:dividerHeight="5dp" />
 
     <!-- Frameの上にビューを置くことができる -->
     <FrameLayout
@@ -29,4 +32,5 @@
             app:elevation="12dp"
             android:src="@drawable/wing_pen" />
     </FrameLayout>
+
 </RelativeLayout>

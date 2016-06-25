@@ -2,7 +2,10 @@ package com.gumio_inf.android.raamemo;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Address;
 import android.location.Criteria;
 import android.location.Geocoder;
@@ -10,20 +13,28 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 public class DataInputActivity extends AppCompatActivity implements LocationListener {
+
+    static final int REQUEST_CODE_CAMERA = 1;
+    static final int REQUEST_CODE_GALLERY = 2;
+    public Bitmap photo;
 
     double latitude;
     double longitue;
@@ -78,40 +89,6 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
         mLocationManager.requestLocationUpdates(provider, 0, 0, this);
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-        ShopItems shopItems = new ShopItems();
-        RaamenItems raamenItems = new RaamenItems();
-
-        //店の情報
-        shopItems.shopName = shop.getText().toString();
-        shopItems.shopLongitue = longitue;
-        shopItems.shopLatitude = latitude;
-        Log.d("shopName", shopItems.shopName);
-        Log.d("shopLongitue", String.valueOf(shopItems.shopLongitue));
-        Log.d("shopLatitude", String.valueOf(shopItems.shopLatitude));
-
-        //ラーメンの情報
-        Date date = new Date();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.JAPANESE);
-        raamenItems.raamenName = raamen.getText().toString();
-        raamenItems.createdDt = sdf.format(date);
-        raamenItems.taste = taste.getText().toString();
-        raamenItems.raamenMemo = memo.getText().toString();
-        Log.d("raamenName", raamenItems.raamenName);
-        Log.d("createDt", raamenItems.createdDt);
-        Log.d("taste", raamenItems.taste);
-        Log.d("raamenMemo", raamenItems.raamenMemo);
-
-        //保存
-        raamenItems.save();
-        shopItems.save();
-
-        Toast.makeText(getApplicationContext(), "保存しました", Toast.LENGTH_SHORT).show();
-    }
-
     public void getLocateShop(View v) {
         locate.setText(getLocate());
     }
@@ -163,10 +140,92 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
     }
 
     public void onCameraUp(View v) {
-
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        startActivityForResult(intent, REQUEST_CODE_CAMERA);
     }
 
     public void onPhotoUp(View v) {
+        Intent intent = new Intent(Intent.ACTION_PICK,
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(intent, REQUEST_CODE_GALLERY);
+    }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+
+        if(resultCode == RESULT_OK) {
+            if(requestCode == REQUEST_CODE_GALLERY) {
+
+                try {
+                    InputStream inputStream = getContentResolver().openInputStream(intent.getData());
+                    photo = BitmapFactory.decodeStream(inputStream);
+                    inputStream.close();
+                    Toast.makeText(getApplicationContext(), "アップロードできました", Toast.LENGTH_SHORT).show();
+
+                } catch (Exception e) {
+                    Toast.makeText(getApplicationContext(), "エラー", Toast.LENGTH_SHORT).show();
+                }
+            } else if (requestCode == REQUEST_CODE_CAMERA) {
+                photo = (Bitmap)intent.getExtras().get("data");
+                Toast.makeText(getApplicationContext(), "アップロードできました", Toast.LENGTH_SHORT).show();
+            }
+        } else if(resultCode == RESULT_CANCELED) {
+            Toast.makeText(getApplicationContext(), "CANCEL", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void test(View v) {
+        Log.d("picture:", String.valueOf(photo));
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_memo_save, menu);
+        return true;
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        int id = item.getItemId();
+
+        if(R.id.create_save == id) {
+            saveMemo();
+            finish();
+
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    void saveMemo() {
+        ShopItems shopItems = new ShopItems();
+        RaamenItems raamenItems = new RaamenItems();
+        //店の情報
+        shopItems.shopName = shop.getText().toString();
+        shopItems.shopLongitue = longitue;
+        shopItems.shopLatitude = latitude;
+        Log.d("shopName", shopItems.shopName);
+        Log.d("shopLongitue", String.valueOf(shopItems.shopLongitue));
+        Log.d("shopLatitude", String.valueOf(shopItems.shopLatitude));
+
+        //ラーメンの情報
+        Date date = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.JAPANESE);
+        raamenItems.raamenName = raamen.getText().toString();
+        raamenItems.createdDt = sdf.format(date);
+        raamenItems.picture = String.valueOf(photo);
+        raamenItems.taste = taste.getText().toString();
+        raamenItems.raamenMemo = memo.getText().toString();
+        Log.d("raamenName", raamenItems.raamenName);
+        Log.d("createDt", raamenItems.createdDt);
+        Log.d("taste", raamenItems.taste);
+        Log.d("raamenMemo", raamenItems.raamenMemo);
+         //保存
+        raamenItems.save();
+        shopItems.save();
+        Toast.makeText(getApplicationContext(), "保存しました", Toast.LENGTH_SHORT).show();
     }
 }
