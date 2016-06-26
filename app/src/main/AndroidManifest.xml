@@ -21,20 +21,23 @@
             android:value="RaamenData.db" />
         <meta-data
             android:name="AA_DB_VERSION"
-            android:value="10" />
+            android:value="1" />
         <meta-data
             android:name="AA_MODELS"
-            android:value="com.gumio_inf.android.raamemo.ShopItems, com.gumio_inf.android.raamemo.RaamenItems" />
+            android:value="com.gumio_inf.android.raamemo.model.RaamenItem, com.gumio_inf.android.raamemo.model.ShopItem" />
 
-        <activity android:name=".MainActivity"
-                  android:windowSoftInputMode="adjustPan">
+        <activity
+            android:name=".activity.MainActivity"
+            android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".DataInputActivity"></activity>
+        <activity android:name=".activity.DataInputActivity" />
+        <service android:name=".service.GeofenceService"/>
+        <service android:name=".service.NotificationService"/>
     </application>
 
 </manifest>

@@ -1,36 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context="com.gumio_inf.android.raamemo.MainActivity">
+    tools:context=".activity.MainActivity">
 
 
     <!-- ListViewの上に別のcardviewを乗せることで実現 -->
     <ListView
+        android:id="@+id/cardList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/cardList"
-        android:divider="@null"
         android:layout_alignParentTop="true"
+        android:divider="@null"
         android:dividerHeight="5dp" />
 
     <!-- Frameの上にビューを置くことができる -->
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
 
-        <android.support.design.widget.FloatingActionButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/memoPlusFab"
-            android:onClick="addMemo"
-            android:layout_gravity="right|bottom"
-            android:layout_marginBottom="20dp"
-            android:layout_marginRight="20dp"
-            app:elevation="12dp"
-            android:src="@drawable/wing_pen" />
-    </FrameLayout>
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/memoPlusFab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:layout_marginRight="20dp"
+        android:onClick="addMemo"
+        android:src="@drawable/wing_pen"
+        app:elevation="24dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true" />
 
 </RelativeLayout>

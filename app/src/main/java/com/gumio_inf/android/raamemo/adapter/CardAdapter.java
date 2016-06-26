@@ -1,4 +1,4 @@
-package com.gumio_inf.android.raamemo;
+package com.gumio_inf.android.raamemo.adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -7,6 +7,9 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.gumio_inf.android.raamemo.R;
+import com.gumio_inf.android.raamemo.model.RaamenData;
 
 import java.util.List;
 
@@ -33,7 +36,7 @@ public class CardAdapter extends ArrayAdapter<RaamenData> {
         // convertViewは使い回しされている可能性があるのでnullの時だけ新しく作る
         if (convertView == null) {
             //inflaterで指定のxmlのviewを取得する
-            convertView = inflater.inflate(R.layout.card_list, null);
+            convertView = inflater.inflate(R.layout.item_raamen, null);
         }
 
         //取得後はconvertViewで設定
@@ -45,9 +48,9 @@ public class CardAdapter extends ArrayAdapter<RaamenData> {
         TextView locateTextView;
         TextView memoTextView;
 
-        shopTextView = (TextView)convertView.findViewById(R.id.textView);
-        locateTextView = (TextView)convertView.findViewById(R.id.textView2);
-        memoTextView = (TextView)convertView.findViewById(R.id.textView3);
+        shopTextView = (TextView)convertView.findViewById(R.id.text_shop);
+        locateTextView = (TextView)convertView.findViewById(R.id.text_local);
+        memoTextView = (TextView)convertView.findViewById(R.id.text_memo);
 
 
         shopTextView.setText(item.getTextData());

@@ -4,9 +4,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".activity.DataInputActivity">
     <item
-        android:id="@+id/create_save"
-        android:icon="@android:drawable/ic_menu_save"
+        android:id="@+id/create_recomend"
+        android:icon="@android:drawable/ic_menu_search"
         android:orderInCategory="100"
-        android:title="保存"
+        android:title="推薦"
         app:showAsAction="ifRoom"/>
 </menu>

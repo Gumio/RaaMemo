@@ -1,4 +1,4 @@
-package com.gumio_inf.android.raamemo;
+package com.gumio_inf.android.raamemo.model;
 
 import android.graphics.Bitmap;
 

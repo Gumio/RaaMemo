@@ -1,4 +1,4 @@
-package com.gumio_inf.android.raamemo;
+package com.gumio_inf.android.raamemo.activity;
 
 import android.Manifest;
 import android.content.Context;
@@ -21,10 +21,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.gumio_inf.android.raamemo.R;
+import com.gumio_inf.android.raamemo.model.RaamenItem;
+import com.gumio_inf.android.raamemo.model.ShopItem;
+
 import java.io.IOException;
-import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -37,13 +41,14 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
     public Bitmap photo;
 
     double latitude;
-    double longitue;
+    double longitued;
 
     EditText shop;
     EditText raamen;
     EditText taste;
     EditText locate;
     EditText memo;
+    ImageView picture;
 
     LocationManager mLocationManager;
     Criteria criteria;
@@ -53,11 +58,13 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_data_input);
+
         shop = (EditText) findViewById(R.id.editShop);
         raamen = (EditText) findViewById(R.id.editRaamenName);
         locate = (EditText) findViewById(R.id.editLocate);
         taste = (EditText) findViewById(R.id.editTaste);
         memo = (EditText) findViewById(R.id.editMemo);
+        picture = (ImageView) findViewById(R.id.icon);
 
 
         // LocationManagerを取得
@@ -99,10 +106,10 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
         latitude = location.getLatitude();
 
         // 経度の取得
-        longitue = location.getLongitude();
+        longitued = location.getLongitude();
 
         Log.d("latitude", String.valueOf(latitude));
-        Log.d("longitue", String.valueOf(longitue));
+        Log.d("longitue", String.valueOf(longitued));
     }
 
     @Override
@@ -128,7 +135,7 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
         try {
 
             Geocoder gcd = new Geocoder(this, Locale.JAPAN);
-            List<Address> addresses = gcd.getFromLocation(latitude, longitue, 1);
+            List<Address> addresses = gcd.getFromLocation(latitude, longitued, 1);
             if (!addresses.isEmpty()) {
                 ret = addresses.get(0).getAddressLine(1);
             }
@@ -141,12 +148,14 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
 
     public void onCameraUp(View v) {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        Log.d("Camera = ", String.valueOf(intent));
         startActivityForResult(intent, REQUEST_CODE_CAMERA);
     }
 
     public void onPhotoUp(View v) {
         Intent intent = new Intent(Intent.ACTION_PICK,
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        Log.d("Photo = ", String.valueOf(intent));
         startActivityForResult(intent, REQUEST_CODE_GALLERY);
     }
 
@@ -154,23 +163,31 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
 
-        if(resultCode == RESULT_OK) {
-            if(requestCode == REQUEST_CODE_GALLERY) {
+        if (resultCode == RESULT_OK) {
+            if (requestCode == REQUEST_CODE_GALLERY) {
 
-                try {
-                    InputStream inputStream = getContentResolver().openInputStream(intent.getData());
-                    photo = BitmapFactory.decodeStream(inputStream);
-                    inputStream.close();
-                    Toast.makeText(getApplicationContext(), "アップロードできました", Toast.LENGTH_SHORT).show();
+                // 表示したい画像のパス
+                String path = String.valueOf(intent);
 
-                } catch (Exception e) {
-                    Toast.makeText(getApplicationContext(), "エラー", Toast.LENGTH_SHORT).show();
-                }
+                // デコード時のオプション
+                BitmapFactory.Options options = new BitmapFactory.Options();
+
+                // 画像のサイズだけを取得するようにする
+                options.inJustDecodeBounds = true;
+
+                // 設定したオプションに従って画像をデコード
+                Bitmap bmp = BitmapFactory.decodeFile(path, options);
+
+                int height = options.outHeight; // 高さ
+                int width  = options.outWidth;  // 幅
+                Log.d("height", String.valueOf(height));
+                Log.d("width", String.valueOf(width));
+
             } else if (requestCode == REQUEST_CODE_CAMERA) {
-                photo = (Bitmap)intent.getExtras().get("data");
+                photo = (Bitmap) intent.getExtras().get("data");
                 Toast.makeText(getApplicationContext(), "アップロードできました", Toast.LENGTH_SHORT).show();
             }
-        } else if(resultCode == RESULT_CANCELED) {
+        } else if (resultCode == RESULT_CANCELED) {
             Toast.makeText(getApplicationContext(), "CANCEL", Toast.LENGTH_SHORT).show();
         }
     }
@@ -191,7 +208,7 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
 
         int id = item.getItemId();
 
-        if(R.id.create_save == id) {
+        if (R.id.create_save == id) {
             saveMemo();
             finish();
 
@@ -201,31 +218,31 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
     }
 
     void saveMemo() {
-        ShopItems shopItems = new ShopItems();
-        RaamenItems raamenItems = new RaamenItems();
+        ShopItem shopItem = new ShopItem();
         //店の情報
-        shopItems.shopName = shop.getText().toString();
-        shopItems.shopLongitue = longitue;
-        shopItems.shopLatitude = latitude;
-        Log.d("shopName", shopItems.shopName);
-        Log.d("shopLongitue", String.valueOf(shopItems.shopLongitue));
-        Log.d("shopLatitude", String.valueOf(shopItems.shopLatitude));
+        shopItem.name = shop.getText().toString();
+        shopItem.longitude = longitued;
+        shopItem.latitude = latitude;
+        shopItem.save();
+        Log.d("shopName", shopItem.name);
+        Log.d("shopLongitue", String.valueOf(shopItem.longitude));
+        Log.d("shopLatitude", String.valueOf(shopItem.latitude));
 
         //ラーメンの情報
-        Date date = new Date();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.JAPANESE);
-        raamenItems.raamenName = raamen.getText().toString();
-        raamenItems.createdDt = sdf.format(date);
-        raamenItems.picture = String.valueOf(photo);
-        raamenItems.taste = taste.getText().toString();
-        raamenItems.raamenMemo = memo.getText().toString();
-        Log.d("raamenName", raamenItems.raamenName);
-        Log.d("createDt", raamenItems.createdDt);
-        Log.d("taste", raamenItems.taste);
-        Log.d("raamenMemo", raamenItems.raamenMemo);
-         //保存
-        raamenItems.save();
-        shopItems.save();
+        RaamenItem raamenItem = new RaamenItem();
+        raamenItem.name = raamen.getText().toString();
+        raamenItem.createdDt = new Date();
+        raamenItem.picture = photo;
+        raamenItem.taste = taste.getText().toString();
+        raamenItem.memo = memo.getText().toString();
+        raamenItem.shopItem = shopItem;
+        Log.d("raamenName", raamenItem.name);
+        Log.d("createDt", sdf.format(raamenItem.createdDt));
+        Log.d("taste", raamenItem.taste);
+        Log.d("raamenMemo", raamenItem.memo);
+        //保存
+        raamenItem.save();
         Toast.makeText(getApplicationContext(), "保存しました", Toast.LENGTH_SHORT).show();
     }
 }
