@@ -12,9 +12,7 @@
         android:id="@+id/cardList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentTop="true"
-        android:divider="@null"
-        android:dividerHeight="5dp" />
+        android:divider="@null" />
 
     <!-- Frameの上にビューを置くことができる -->
 

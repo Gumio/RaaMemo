@@ -3,6 +3,7 @@
     xmlns:card_list="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:padding="8dp">
 
@@ -13,7 +14,8 @@
         android:layout_height="90dp"
         android:foreground="?android:attr/selectableItemBackground"
         card_list:cardBackgroundColor="@android:color/white"
-        card_list:cardElevation="12dp"
+        app:cardUseCompatPadding="true"
+        card_list:cardElevation="30dp"
         card_list:cardMaxElevation="@dimen/cardview_default_elevation">
 
         <!-- カードに載せる情報 -->
@@ -38,7 +40,7 @@
                     android:layout_alignParentTop="true"
                     android:layout_weight="1"
                     android:src="@drawable/raamen"
-                    android:scaleType="centerCrop" />
+                    android:scaleType="fitXY" />
 
                 <LinearLayout
                     android:layout_width="0dp"
