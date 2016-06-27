@@ -1,6 +1,9 @@
 package com.gumio_inf.android.raamemo.adapter;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +18,8 @@ import java.util.List;
 
 //Listviewにcardviewを乗せるための手続き
 public class RaamenAdapter extends ArrayAdapter<RaamenItem> {
+
+    Bitmap bitmap;
 
     //コンストラクタ
     public RaamenAdapter(Context context, List<RaamenItem> objects) {
@@ -32,8 +37,14 @@ public class RaamenAdapter extends ArrayAdapter<RaamenItem> {
             viewHolder = (ViewHolder) convertView.getTag();
         }
         RaamenItem item = (RaamenItem) getItem(position);
-        //viewHolder.imageView.setImageBitmap(item.picture);
-        viewHolder.imageView.setImageResource(R.drawable.raamen);
+
+        if (!item.picture.equals("")) {
+            byte[] b = Base64.decode(item.picture, Base64.DEFAULT);
+            bitmap = BitmapFactory.decodeByteArray(b, 0, b.length).copy(Bitmap.Config.RGB_565, true);
+        }
+
+        viewHolder.imageView.setImageBitmap(bitmap);
+        //viewHolder.imageView.setImageResource(R.drawable.raamen);
         viewHolder.shopTextView.setText(item.shopItem.name);
         //viewHolder.locateTextView.setText(item.shopItem.latitude + "");
         viewHolder.memoTextView.setText(item.memo);

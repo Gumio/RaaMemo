@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,7 +29,9 @@ import com.gumio_inf.android.raamemo.R;
 import com.gumio_inf.android.raamemo.model.RaamenItem;
 import com.gumio_inf.android.raamemo.model.ShopItem;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -53,6 +56,8 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
     LocationManager mLocationManager;
     Criteria criteria;
     String provider;
+
+    String bitmapStr;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -165,26 +170,62 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
 
         if (resultCode == RESULT_OK) {
             if (requestCode == REQUEST_CODE_GALLERY) {
+                try {
+                    InputStream inputStream = getContentResolver().openInputStream(intent.getData());
+                    // 画像サイズ情報を取得する
+                    BitmapFactory.Options imageOptions = new BitmapFactory.Options();
+                    imageOptions.inPreferredConfig = Bitmap.Config.RGB_565;
+                    imageOptions.inJustDecodeBounds = true;
+                    BitmapFactory.decodeStream(inputStream, null, imageOptions);
+                    Log.v("image", "Original Image Size: " + imageOptions.outWidth + " x " + imageOptions.outHeight);
 
-                // 表示したい画像のパス
-                String path = String.valueOf(intent);
+                    inputStream.close();
 
-                // デコード時のオプション
-                BitmapFactory.Options options = new BitmapFactory.Options();
+                    // もし、画像が大きかったら縮小して読み込む
+                    //  今回はimageSizeMaxの大きさに合わせる
+                    int imageSizeMax = 500;
+                    inputStream = getContentResolver().openInputStream(intent.getData());
+                    float imageScaleWidth = (float)imageOptions.outWidth / imageSizeMax;
+                    float imageScaleHeight = (float)imageOptions.outHeight / imageSizeMax;
 
-                // 画像のサイズだけを取得するようにする
-                options.inJustDecodeBounds = true;
+                    // もしも、縮小できるサイズならば、縮小して読み込む
+                    if (imageScaleWidth > 2 && imageScaleHeight > 2) {
+                        BitmapFactory.Options imageOptions2 = new BitmapFactory.Options();
 
-                // 設定したオプションに従って画像をデコード
-                Bitmap bmp = BitmapFactory.decodeFile(path, options);
+                        // 縦横、小さい方に縮小するスケールを合わせる
+                        int imageScale = (int)Math.floor((imageScaleWidth > imageScaleHeight ? imageScaleHeight : imageScaleWidth));
 
-                int height = options.outHeight; // 高さ
-                int width  = options.outWidth;  // 幅
-                Log.d("height", String.valueOf(height));
-                Log.d("width", String.valueOf(width));
+                        // inSampleSizeには2のべき上が入るべきなので、imageScaleに最も近く、かつそれ以下の2のべき上の数を探す
+                        for (int i = 2; i <= imageScale; i *= 2) {
+                            imageOptions2.inSampleSize = i;
+                        }
+
+                        photo = BitmapFactory.decodeStream(inputStream, null, imageOptions2);
+                        Log.v("image", "Sample Size: 1/" + imageOptions2.inSampleSize);
+                    } else {
+                        photo = BitmapFactory.decodeStream(inputStream);
+                    }
+
+                    inputStream.close();
+
+                } catch(Exception e) {
+                    Toast.makeText(getApplicationContext(), "エラー", Toast.LENGTH_SHORT).show();
+                }
+
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                photo.compress(Bitmap.CompressFormat.PNG, 100, baos);
+                bitmapStr = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
+                Log.d("photo:", bitmapStr);
 
             } else if (requestCode == REQUEST_CODE_CAMERA) {
+
                 photo = (Bitmap) intent.getExtras().get("data");
+                Log.d("photo:", String.valueOf(photo));
+
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                photo.compress(Bitmap.CompressFormat.PNG, 100, baos);
+                bitmapStr = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
+                Log.d("photo:", bitmapStr);
                 Toast.makeText(getApplicationContext(), "アップロードできました", Toast.LENGTH_SHORT).show();
             }
         } else if (resultCode == RESULT_CANCELED) {
@@ -233,14 +274,15 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
         RaamenItem raamenItem = new RaamenItem();
         raamenItem.name = raamen.getText().toString();
         raamenItem.createdDt = new Date();
-        raamenItem.picture = photo;
+        raamenItem.picture = bitmapStr;
         raamenItem.taste = taste.getText().toString();
         raamenItem.memo = memo.getText().toString();
         raamenItem.shopItem = shopItem;
-        Log.d("raamenName", raamenItem.name);
-        Log.d("createDt", sdf.format(raamenItem.createdDt));
-        Log.d("taste", raamenItem.taste);
-        Log.d("raamenMemo", raamenItem.memo);
+        //Log.d("raamenName", raamenItem.name);
+        //Log.d("createDt", sdf.format(raamenItem.createdDt));
+        //Log.d("taste", raamenItem.taste);
+        //Log.d("raamenMemo", raamenItem.memo);
+        //Log.d("picture", raamenItem.picture);
         //保存
         raamenItem.save();
         Toast.makeText(getApplicationContext(), "保存しました", Toast.LENGTH_SHORT).show();

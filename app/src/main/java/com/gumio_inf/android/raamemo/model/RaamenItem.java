@@ -1,7 +1,5 @@
 package com.gumio_inf.android.raamemo.model;
 
-import android.graphics.Bitmap;
-
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
@@ -23,7 +21,7 @@ public class RaamenItem extends Model {
     @Column(name = "Taste")
     public String taste;
     @Column(name = "Picture")
-    public Bitmap picture;
+    public String picture;
     @Column(name = "Memo")
     public String memo;
 
