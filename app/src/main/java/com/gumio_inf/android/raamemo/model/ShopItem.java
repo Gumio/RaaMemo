@@ -20,4 +20,6 @@ public class ShopItem extends Model {
     //店の経度
     @Column(name = "Longitude")
     public Double longitude;
+    @Column(name = "Location")
+    public String location;
 }

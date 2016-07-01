@@ -6,13 +6,12 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <!-- 位置情報 ネットワークから -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <!-- これは何だろう？？？ -->
-    <uses-permission android:name="android.permission.ACCESS_COARSE_UPDATES" />
+
 
     <application
         android:name="com.activeandroid.app.Application"
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/raamemoicon"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
@@ -37,8 +36,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".activity.DataInputActivity" />
-        <service android:name=".service.GeofenceService"/>
-        <service android:name=".service.NotificationService"/>
+
     </application>
 
 </manifest>

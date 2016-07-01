@@ -1,19 +1,18 @@
 package com.gumio_inf.android.raamemo.activity;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Address;
-import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
@@ -32,15 +31,18 @@ import com.gumio_inf.android.raamemo.model.ShopItem;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class DataInputActivity extends AppCompatActivity implements LocationListener {
-
+public class DataInputActivity extends AppCompatActivity implements android.location.LocationListener {
     static final int REQUEST_CODE_CAMERA = 1;
     static final int REQUEST_CODE_GALLERY = 2;
+    private final int REQUEST_PERMISSION = 1000;
+    private LocationManager locationManager;
+
+    private static final int MinTime = 1000;
+    private static final float MinDistance = 3;
     public Bitmap photo;
 
     double latitude;
@@ -53,16 +55,15 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
     EditText memo;
     ImageView picture;
 
-    LocationManager mLocationManager;
-    Criteria criteria;
-    String provider;
-
     String bitmapStr;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_data_input);
+        // LocationManager インスタンス生成
+        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+
 
         shop = (EditText) findViewById(R.id.editShop);
         raamen = (EditText) findViewById(R.id.editRaamenName);
@@ -70,106 +71,218 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
         taste = (EditText) findViewById(R.id.editTaste);
         memo = (EditText) findViewById(R.id.editMemo);
         picture = (ImageView) findViewById(R.id.icon);
-
-
-        // LocationManagerを取得
-        mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-        // Criteriaオブジェクトを生成
-        criteria = new Criteria();
-
-        // Accuracyを指定(低精度)
-        criteria.setAccuracy(Criteria.ACCURACY_COARSE);
-
-        // PowerRequirementを指定(低消費電力)
-        criteria.setPowerRequirement(Criteria.POWER_LOW);
-
-        // ロケーションプロバイダの取得
-        provider = mLocationManager.getBestProvider(criteria, true);
-
-        // LocationListenerを登録
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        mLocationManager.requestLocationUpdates(provider, 0, 0, this);
     }
 
     public void getLocateShop(View v) {
-        locate.setText(getLocate());
+        Toast.makeText(this, "少しまってね〜", Toast.LENGTH_LONG).show();
+        // Android 6, API 23以上でパーミッシンの確認
+        if (Build.VERSION.SDK_INT >= 23) {
+            checkPermission();
+        } else {
+            locationStart();
+        }
+    }
+
+    // 位置情報許可の確認
+    public void checkPermission() {
+        // 既に許可している
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            locationStart();
+        }
+        // 拒否していた場合
+        else {
+            requestLocationPermission();
+        }
+    }
+
+    // 許可を求める
+    private void requestLocationPermission() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_PERMISSION);
+
+        } else {
+            Toast toast = Toast.makeText(this, "許可してくれないとわからないよ〜", Toast.LENGTH_SHORT);
+            toast.show();
+
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION,}, REQUEST_PERMISSION);
+
+        }
+    }
+
+    // 結果の受け取り
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (requestCode == REQUEST_PERMISSION) {
+            // 使用が許可された
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "場所によっては取得できないよ！！", Toast.LENGTH_LONG).show();
+                locationStart();
+                return;
+
+            } else {
+                // それでも拒否された時の対応
+                Toast toast = Toast.makeText(this, "なんで拒否するの！？", Toast.LENGTH_SHORT);
+                toast.show();
+            }
+        }
+    }
+
+    private void locationStart() {
+        // LocationManager インスタンス生成
+        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+
+        startGPS();
+    }
+
+    protected void startGPS() {
+        Log.d("LocationActivity", "gpsEnabled");
+        final boolean gpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        if (!gpsEnabled) {
+            // GPSを設定するように促す
+            enableLocationSettings();
+        }
+
+        if (locationManager != null) {
+            Log.d("LocationActivity", "locationManager.requestLocationUpdates");
+            // バックグラウンドから戻ってしまうと例外が発生する場合がある
+            try {
+                // minTime = 1000msec, minDistance = 50m
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    // TODO: Consider calling
+                    //    ActivityCompat#requestPermissions
+                    // here to request the missing permissions, and then overriding
+                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                    //                                          int[] grantResults)
+                    // to handle the case where the user grants the permission. See the documentation
+                    // for ActivityCompat#requestPermissions for more details.
+                    return;
+                }
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MinTime, MinDistance, this);
+            } catch (Exception e) {
+                e.printStackTrace();
+
+                Toast toast = Toast.makeText(this, "例外が発生、位置情報のPermissionを許可していますか？", Toast.LENGTH_SHORT);
+                toast.show();
+
+                enableLocationSettings();
+            }
+        }
+
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if (locationManager != null) {
+            Log.d("LocationActivity", "locationManager.removeUpdates");
+            // update を止める
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return;
+            }
+            locationManager.removeUpdates(this);
+        }
     }
 
     @Override
     public void onLocationChanged(Location location) {
-        // 緯度の取得
-        latitude = location.getLatitude();
 
-        // 経度の取得
+        latitude = location.getLatitude();
         longitued = location.getLongitude();
 
-        Log.d("latitude", String.valueOf(latitude));
-        Log.d("longitue", String.valueOf(longitued));
+        locate.setText(getLocate());
+        stopGPS();
     }
 
     @Override
     public void onProviderDisabled(String provider) {
-        // TODO Auto-generated method stub
 
     }
 
     @Override
     public void onProviderEnabled(String provider) {
-        // TODO Auto-generated method stub
 
     }
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
-        // TODO Auto-generated method stub
 
+    }
+
+    private void enableLocationSettings() {
+        Toast.makeText(this, "GPSをオンにしてね！", Toast.LENGTH_LONG).show();
+        Intent settingsIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+        startActivity(settingsIntent);
+    }
+
+    private void stopGPS(){
+        if (locationManager != null) {
+            Log.d("LocationActivity", "onStop()");
+            // update を止める
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+            locationManager.removeUpdates(this);
+        }
+    }
+
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        stopGPS();
     }
 
     protected String getLocate() {
         String ret = "";
         try {
-
             Geocoder gcd = new Geocoder(this, Locale.JAPAN);
             List<Address> addresses = gcd.getFromLocation(latitude, longitued, 1);
-            if (!addresses.isEmpty()) {
+            if (addresses.size() > 0) {
                 ret = addresses.get(0).getAddressLine(1);
+                if(ret.length() > 0) {
+                    ret = ret.substring(10);
+                }
             }
 
         } catch (IOException e) {
             e.printStackTrace();
         }
+        Log.d("現在地:", ret);
         return ret;
     }
 
+    //カメラで撮影した情報を渡す
     public void onCameraUp(View v) {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        Log.d("Camera = ", String.valueOf(intent));
         startActivityForResult(intent, REQUEST_CODE_CAMERA);
     }
 
+    //ギャラリーから選択された情報を渡す
     public void onPhotoUp(View v) {
         Intent intent = new Intent(Intent.ACTION_PICK,
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        Log.d("Photo = ", String.valueOf(intent));
         startActivityForResult(intent, REQUEST_CODE_GALLERY);
     }
 
+    //暗黙的インテントで選択された時に呼ばれる
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
 
         if (resultCode == RESULT_OK) {
             if (requestCode == REQUEST_CODE_GALLERY) {
+                //ギャラリーから画像を取得したとき
                 try {
                     InputStream inputStream = getContentResolver().openInputStream(intent.getData());
                     // 画像サイズ情報を取得する
@@ -177,7 +290,6 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
                     imageOptions.inPreferredConfig = Bitmap.Config.RGB_565;
                     imageOptions.inJustDecodeBounds = true;
                     BitmapFactory.decodeStream(inputStream, null, imageOptions);
-                    Log.v("image", "Original Image Size: " + imageOptions.outWidth + " x " + imageOptions.outHeight);
 
                     inputStream.close();
 
@@ -201,7 +313,6 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
                         }
 
                         photo = BitmapFactory.decodeStream(inputStream, null, imageOptions2);
-                        Log.v("image", "Sample Size: 1/" + imageOptions2.inSampleSize);
                     } else {
                         photo = BitmapFactory.decodeStream(inputStream);
                     }
@@ -212,38 +323,36 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
                     Toast.makeText(getApplicationContext(), "エラー", Toast.LENGTH_SHORT).show();
                 }
 
+                //BitmapをStringにしてDBに格納できるようにする
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 photo.compress(Bitmap.CompressFormat.PNG, 100, baos);
                 bitmapStr = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
-                Log.d("photo:", bitmapStr);
+                Toast.makeText(getApplicationContext(), "アップロードしたよ！", Toast.LENGTH_SHORT).show();
 
             } else if (requestCode == REQUEST_CODE_CAMERA) {
+                //カメラで撮影された時の対処
+                Bitmap photo = (Bitmap)intent.getExtras().get("data");
+                Bitmap photoRe = Bitmap.createScaledBitmap(photo, 300, 300, false);
 
-                photo = (Bitmap) intent.getExtras().get("data");
-                Log.d("photo:", String.valueOf(photo));
-
+                //BitmapをStringにしてDBに格納できるようにする
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                photo.compress(Bitmap.CompressFormat.PNG, 100, baos);
+                photoRe.compress(Bitmap.CompressFormat.PNG, 100, baos);
                 bitmapStr = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
-                Log.d("photo:", bitmapStr);
-                Toast.makeText(getApplicationContext(), "アップロードできました", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "アップロードしたよ！", Toast.LENGTH_SHORT).show();
             }
         } else if (resultCode == RESULT_CANCELED) {
             Toast.makeText(getApplicationContext(), "CANCEL", Toast.LENGTH_SHORT).show();
         }
     }
 
-    public void test(View v) {
-        Log.d("picture:", String.valueOf(photo));
-    }
-
+    //保存ボタンをメニューバーに設置
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_memo_save, menu);
         return true;
     }
 
-
+    //保存ボタンが押されたことを検知する
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
@@ -258,19 +367,17 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
         return super.onOptionsItemSelected(item);
     }
 
+    //DBへの格納
     void saveMemo() {
         ShopItem shopItem = new ShopItem();
         //店の情報
         shopItem.name = shop.getText().toString();
         shopItem.longitude = longitued;
         shopItem.latitude = latitude;
+        shopItem.location = locate.getText().toString();
         shopItem.save();
-        Log.d("shopName", shopItem.name);
-        Log.d("shopLongitue", String.valueOf(shopItem.longitude));
-        Log.d("shopLatitude", String.valueOf(shopItem.latitude));
 
         //ラーメンの情報
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.JAPANESE);
         RaamenItem raamenItem = new RaamenItem();
         raamenItem.name = raamen.getText().toString();
         raamenItem.createdDt = new Date();
@@ -278,11 +385,7 @@ public class DataInputActivity extends AppCompatActivity implements LocationList
         raamenItem.taste = taste.getText().toString();
         raamenItem.memo = memo.getText().toString();
         raamenItem.shopItem = shopItem;
-        //Log.d("raamenName", raamenItem.name);
-        //Log.d("createDt", sdf.format(raamenItem.createdDt));
-        //Log.d("taste", raamenItem.taste);
-        //Log.d("raamenMemo", raamenItem.memo);
-        //Log.d("picture", raamenItem.picture);
+
         //保存
         raamenItem.save();
         Toast.makeText(getApplicationContext(), "保存しました", Toast.LENGTH_SHORT).show();
