@@ -1,29 +1,28 @@
-package com.gumio_inf.android.raamemo.model;
+package com.gumio_inf.android.raamemo.model
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-
-import java.util.Date;
+import com.activeandroid.Model
+import com.activeandroid.annotation.Column
+import com.activeandroid.annotation.Table
+import java.util.*
 
 /**
  * Created by gumio_inf on 16/06/19.
  */
 //必要なDBを作成
 @Table(name = "RaamenItems")
-public class RaamenItem extends Model {
+class RaamenItem : Model() {
     @Column(name = "ShopItems")
-    public ShopItem shopItem;
+    var shopItem: ShopItem? = null
     @Column(name = "CreateData")
-    public Date createdDt;
+    var createdDt: Date? = null
     @Column(name = "Name")
-    public String name;
+    var name: String? = null
     @Column(name = "Taste")
-    public String taste;
+    var taste: String? = null
     @Column(name = "Picture")
-    public String picture;
+    var picture: String? = null
     @Column(name = "Memo")
-    public String memo;
+    var memo: String? = null
 
     //shopidで関連付け
     //public List<ShopItem> shopItemses() {
